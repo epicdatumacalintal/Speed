@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <!-- favicon 
+    <link rel="icon" href="https://raw.githubusercontent.com/tomasdmacalintal/CS3_2ndQtrPortfolio/main/assets/images/cspairproj_favicon2.png" sizes="any">
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/tomasdmacalintal/CS3_2ndQtrPortfolio/main/assets/images/cspairproj_favicon2.png"> -->
+
+    <!-- Encoding + mobile responsiveness -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Page info -->
+    <title>Speed</title>
+    <meta name="description" content="A game of speed.">
+    <meta name="author" content="Datu Macalintal">
+
+    <!-- Link Stylesheet -->
+
+
+    <style>
+        body{
+            background-color: rgb(150, 221, 221);
+            overflow: hidden;
+        }
+        #user_deck{
+            position: absolute;
+            display: flex;
+            justify-content: center;
+            width: 100%;
+            bottom: 5vmin;
+            left: 0;
+        }
+        .card{
+            background: url('./assets/spritesheets/cards.png') no-repeat;
+            width: calc(25vmin / 2.5);
+            height: calc(35vmin / 2.5);
+            background-size: auto 100%;
+            animation: draw 0.5s;
+            margin: 0.5vmin;
+            transition: 0.2s;
+        }
+        .hovered{
+            transform: scale(1.4);
+            z-index: 1;
+        }
+
+        @keyframes draw {
+            0% {rotate: -30deg; transform: translateY(calc(35vmin / 2.5 * 2));}
+            100% {rotate: 0; transform: translateY(0);}
+        }
+    </style>
+</head>
+<body>
+    <div id="user_deck">
+    </div>
+
+    <script>
+        userDeck = document.getElementById('user_deck');
+        cards = document.getElementsByClassName('card');
+
+        document.addEventListener('keydown', keyPress);
+        function keyPress(event){
+            if (event.repeat){
+                return;
+            }
+            if (event.key == ' ' && cards.length < 5){
+                const card = document.createElement('div');
+                card.className = "card";
+                card.addEventListener('mousemove', hover);
+                card.addEventListener('mouseleave', unhover);
+                userDeck.appendChild(card);
+            }
+            if (parseInt(event.key) >= 1 && parseInt(event.key) <= cards.length && cards.length >= 1){
+                if (!cards[parseInt(event.key)-1].classList.contains('hovered')){
+                    for (let i = 0; i < cards.length; i++){
+                        cards[i].classList.remove ('hovered'); 
+                    }
+                    cards[parseInt(event.key)-1].classList.add('hovered');
+                }
+                else{
+                    cards[parseInt(event.key)-1].classList.remove('hovered');
+                }
+            }
+        }
+
+        function hover(event){
+            for (let i = 0; i < cards.length; i++){
+                cards[i].classList.remove ('hovered'); 
+            }
+            event.target.classList.add('hovered');
+        }
+        function unhover(event){
+            event.target.classList.remove('hovered');
+        }
+    </script>
+</body>
