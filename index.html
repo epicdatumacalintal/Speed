@@ -22,26 +22,25 @@
             background-color: rgb(150, 221, 221);
             overflow: hidden;
         }
-        #user_deck{
-            position: absolute;
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            bottom: 5vmin;
-            left: 0;
-        }
         .card{
             background: url('./assets/spritesheets/cards.png') no-repeat;
             width: calc(25vmin / 2.5);
             height: calc(35vmin / 2.5);
             background-size: auto 100%;
             animation: draw 0.5s;
-            margin: 0.5vmin;
-            transition: 0.2s;
+            transition: transform 0.3s, left 0.3s, top 0.3s;
+            user-select: none;
+            position: absolute;
         }
         .hovered{
             transform: scale(1.4);
             z-index: 1;
+            cursor: grab;
+        }
+        .grabbed{
+            cursor: grabbing;
+            z-index: 999;
+            transition: left 0s, top 0s;
         }
 
         @keyframes draw {
@@ -51,12 +50,25 @@
     </style>
 </head>
 <body>
-    <div id="user_deck">
-    </div>
+
 
     <script>
-        userDeck = document.getElementById('user_deck');
         cards = document.getElementsByClassName('card');
+        selectedCard = null;
+
+        originalLeft = [];
+        originalTop = 'calc(100% - (35vmin / 2.5) - 5vmin)';
+
+        const CARDNAMES = ["1d","2d","3d","4d","5d","6d","7d","8d","9d","10d","11d","12d","13d",
+                        "1h","2h","3h","4h","5h","6h","7h","8h","9h","10h","11h","12h","13h",
+                        "1c","2c","3c","4c","5c","6c","7c","8c","9c","10c","11c","12c","13c",
+                        "1s","2s","3s","4s","5s","6s","7s","8s","9s","10s","11s","12s","13s"];
+        drawnCards = [];
+
+        gap = 2 * Math.min(window.innerWidth, window.innerHeight) / 100;
+
+        document.addEventListener('mousemove', move);
+        document.addEventListener('mouseup', drop);
 
         document.addEventListener('keydown', keyPress);
         function keyPress(event){
@@ -64,11 +76,34 @@
                 return;
             }
             if (event.key == ' ' && cards.length < 5){
+                for (let i = 0; i < cards.length; i++){
+                    if (cards[i].classList.contains('grabbed')){
+                        return;
+                    }
+                }
+
                 const card = document.createElement('div');
                 card.className = "card";
+                for (let i = 0; i < cards.length; i++){
+                    originalLeft[i] = 0.5*window.innerWidth - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2) + (i - (cards.length+1 - 1) / 2) * ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5 + gap));
+                    cards[i].style.left = `${originalLeft[i]}px`;
+                }
+                originalLeft.push(0.5*window.innerWidth - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2) + (cards.length - (cards.length+1 - 1) / 2) * ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5 + gap)));
+                card.style.left = `${originalLeft[originalLeft.length - 1]}px`;
+                card.style.top = originalTop;
+
+                do{
+                    random = Math.floor(Math.random() * 52);
+                } while (drawnCards.includes(CARDNAMES[random]));
+                drawnCards.push(CARDNAMES[random]);
+                console.log(drawnCards);
+
+                card.value = CARDNAMES[random].slice(0, -1);
+                card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${random}) 0`;
                 card.addEventListener('mousemove', hover);
                 card.addEventListener('mouseleave', unhover);
-                userDeck.appendChild(card);
+                card.addEventListener('mousedown', grab);
+                document.body.appendChild(card);
             }
             if (parseInt(event.key) >= 1 && parseInt(event.key) <= cards.length && cards.length >= 1){
                 if (!cards[parseInt(event.key)-1].classList.contains('hovered')){
@@ -84,13 +119,85 @@
         }
 
         function hover(event){
-            for (let i = 0; i < cards.length; i++){
-                cards[i].classList.remove ('hovered'); 
+            if (!event.target.classList.contains('grabbed')){
+                for (let i = 0; i < cards.length; i++){
+                    cards[i].classList.remove ('hovered'); 
+                }
+                event.target.classList.add('hovered');
             }
-            event.target.classList.add('hovered');
         }
         function unhover(event){
             event.target.classList.remove('hovered');
+        }
+        function grab(event){
+            event.target.classList.add('grabbed');
+            for (let i = 0; i < cards.length; i++){
+                if (cards[i] == event.target){
+                    selectedCard = i;
+                }
+                cards[i].classList.remove('hovered'); 
+            }
+            event.target.style.transition = '';
+            console.log(selectedCard);
+            cards[selectedCard].style.left = event.clientX - cards[selectedCard].offsetWidth/2 + 'px';
+            cards[selectedCard].style.top = event.clientY - cards[selectedCard].offsetHeight/2 + 'px';
+
+            
+        }
+        function move(event){
+            if (selectedCard != null){
+                cards[selectedCard].style.left = event.clientX - cards[selectedCard].offsetWidth/2 + 'px';
+                cards[selectedCard].style.top = event.clientY - cards[selectedCard].offsetHeight/2 + 'px';
+
+                if (cards.length > 1){
+                    for (let i = 0; i < cards.length; i++){
+                        if (i != selectedCard){
+                            topLimit = getComputedStyle(cards[i]).top;
+                        }
+                    }
+
+                    console.log(event.clientY, parseInt(topLimit));
+
+                    if (event.clientY < parseInt(topLimit)){
+                        for (let i = 0; i < cards.length; i++){
+                            if (i < selectedCard){
+                                cards[i].style.left = `calc(${originalLeft[i]}px + (25vmin / 2.5) / 2 + ${gap/2}px)`;
+                            }
+                            if (i > selectedCard){
+                                cards[i].style.left = `calc(${originalLeft[i]}px - (25vmin / 2.5) / 2 - ${gap/2}px)`;
+                            }
+                        }
+                    }
+                    else{
+                        for (let i = 0; i < cards.length; i++){
+                            if (i != selectedCard){
+                                cards[i].style.left = `${originalLeft[i]}px`;
+                            }
+                        }
+                        for (let i = 0; i < cards.length; i++){
+                            ;
+                        }
+                    }
+                }
+
+                
+            }
+        }
+        function drop(event){
+            if (selectedCard != null){
+                cards[selectedCard].classList.remove('grabbed');
+                cards[selectedCard].style.zIndex = 999;
+                cards[selectedCard].addEventListener('transitionend', function(){
+                    event.target.style.zIndex = '';
+                }, {once: true});
+
+                for (let i = 0; i < cards.length; i++){
+                    cards[i].style.left = `${originalLeft[i]}px`;
+                    cards[i].style.top = originalTop;
+
+                }
+                selectedCard = null;
+            }
         }
     </script>
 </body>
