@@ -40,7 +40,7 @@
         .grabbed{
             cursor: grabbing;
             z-index: 999;
-            transition: left 0s, top 0s;
+            transition: transform 0.3s, left 0s, top 0s;
         }
 
         @keyframes draw {
@@ -64,11 +64,13 @@
                         "1c","2c","3c","4c","5c","6c","7c","8c","9c","10c","11c","12c","13c",
                         "1s","2s","3s","4s","5s","6s","7s","8s","9s","10s","11s","12s","13s"];
         drawnCards = [];
+        cardOrder = [];
 
-        gap = 2 * Math.min(window.innerWidth, window.innerHeight) / 100;
+        gap = 5 * Math.min(window.innerWidth, window.innerHeight) / 100;
 
         document.addEventListener('mousemove', move);
         document.addEventListener('mouseup', drop);
+        window.addEventListener('resize', resize);
 
         document.addEventListener('keydown', keyPress);
         function keyPress(event){
@@ -104,6 +106,7 @@
                 card.addEventListener('mouseleave', unhover);
                 card.addEventListener('mousedown', grab);
                 document.body.appendChild(card);
+                cardOrder.push(card);
             }
             if (parseInt(event.key) >= 1 && parseInt(event.key) <= cards.length && cards.length >= 1){
                 if (!cards[parseInt(event.key)-1].classList.contains('hovered')){
@@ -137,7 +140,6 @@
                 }
                 cards[i].classList.remove('hovered'); 
             }
-            event.target.style.transition = '';
             console.log(selectedCard);
             cards[selectedCard].style.left = event.clientX - cards[selectedCard].offsetWidth/2 + 'px';
             cards[selectedCard].style.top = event.clientY - cards[selectedCard].offsetHeight/2 + 'px';
@@ -156,8 +158,6 @@
                         }
                     }
 
-                    console.log(event.clientY, parseInt(topLimit));
-
                     if (event.clientY < parseInt(topLimit)){
                         for (let i = 0; i < cards.length; i++){
                             if (i < selectedCard){
@@ -170,12 +170,18 @@
                     }
                     else{
                         for (let i = 0; i < cards.length; i++){
-                            if (i != selectedCard){
-                                cards[i].style.left = `${originalLeft[i]}px`;
+                            if (i != selectedCard && event.clientX > originalLeft[i] + cards[i].offsetWidth / 2 && cardOrder.indexOf(cards[i]) > cardOrder.indexOf(cards[selectedCard])){
+                                cards[cardOrder.indexOf(cards[i])].style.left = `${originalLeft[cardOrder.indexOf(cards[selectedCard])]}px`;
+                                [originalLeft[i], originalLeft[selectedCard]] = [originalLeft[selectedCard], originalLeft[i]];
+                                [cardOrder[i], cardOrder[selectedCard]] = [cardOrder[selectedCard], cardOrder[i]];
+                                break;
                             }
-                        }
-                        for (let i = 0; i < cards.length; i++){
-                            ;
+                            if (i != selectedCard && event.clientX < originalLeft[i] + cards[i].offsetWidth / 2 && cardOrder.indexOf(cards[i]) < cardOrder.indexOf(cards[selectedCard])){
+                                cards[cardOrder.indexOf(cards[i])].style.left = `${originalLeft[cardOrder.indexOf(cards[selectedCard])]}px`;
+                                [originalLeft[i], originalLeft[selectedCard]] = [originalLeft[selectedCard], originalLeft[i]];
+                                [cardOrder[i], cardOrder[selectedCard]] = [cardOrder[selectedCard], cardOrder[i]];
+                                break;
+                            }
                         }
                     }
                 }
@@ -197,6 +203,19 @@
 
                 }
                 selectedCard = null;
+            }
+        }
+        function resize(){
+            for (let i = 0; i < cards.length; i++){
+                cards[i].style.transition = 'none';
+                originalLeft[i] = 0.5*window.innerWidth - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2) + (i - (cards.length - 1) / 2) * ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5 + gap));
+                cards[i].style.left = `${originalLeft[i]}px`;
+            }
+
+            document.body.offsetHeight; // Trigger reflow to apply the new positions immediately
+
+            for (let i = 0; i < cards.length; i++){
+                cards[i].style.transition = "";
             }
         }
     </script>
