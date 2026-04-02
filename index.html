@@ -55,6 +55,7 @@
     <script>
         cards = document.getElementsByClassName('card');
         selectedCard = null;
+        selectIndex = 0;
 
         originalLeft = [];
         originalTop = 'calc(100% - (35vmin / 2.5) - 5vmin)';
@@ -78,6 +79,7 @@
                 return;
             }
             if (event.key == ' ' && cards.length < 5){
+
                 for (let i = 0; i < cards.length; i++){
                     if (cards[i].classList.contains('grabbed')){
                         return;
@@ -109,6 +111,7 @@
                 console.log(cardOrder);
             }
             if (parseInt(event.key) >= 1 && parseInt(event.key) <= cards.length && cards.length >= 1){
+                selectIndex = parseInt(event.key)-1;
                 if (!cards[cardOrder[parseInt(event.key)-1]].classList.contains('hovered')){
                     for (let i = 0; i < cards.length; i++){
                         cards[i].classList.remove ('hovered'); 
@@ -119,14 +122,101 @@
                     cards[cardOrder[parseInt(event.key)-1]].classList.remove('hovered');
                 }
             }
+            if (event.key == 'a'){
+                if (cards.length >= 1){
+                    alreadyHovered = false;
+
+                    for (let i = 0; i < cards.length; i++){
+                        if (cards[i].classList.contains('hovered')){
+                            alreadyHovered = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyHovered){
+                        for (let i = 0; i < cards.length; i++){
+                            cards[i].classList.remove ('hovered'); 
+                        }
+                        if (selectIndex > 0){
+                            cards[cardOrder.indexOf(selectIndex-1)].classList.add('hovered');
+                            selectIndex = selectIndex-1;
+                        }
+                        else{
+                            cards[cardOrder[cardOrder.length - 1]].classList.add('hovered');
+                            selectIndex = cardOrder.length - 1;
+                        }
+                    }
+                    else{
+                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                    }
+                }
+            }
+            if (event.key == 'd'){
+                if (cards.length >= 1){
+                    alreadyHovered = false;
+
+                    for (let i = 0; i < cards.length; i++){
+                        if (cards[i].classList.contains('hovered')){
+                            alreadyHovered = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyHovered){
+                        for (let i = 0; i < cards.length; i++){
+                            cards[i].classList.remove ('hovered'); 
+                        }
+                        if (selectIndex < cards.length - 1){
+                            cards[cardOrder.indexOf(selectIndex+1)].classList.add('hovered');
+                            selectIndex = selectIndex+1;
+                        }
+                        else{
+                            cards[cardOrder[0]].classList.add('hovered');
+                            selectIndex = 0;
+                        }
+                    }
+                    else{
+                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                    }
+                }
+            }
+            if (event.key == 'q'){
+                if (cards.length >= 1){
+                    alreadyHovered = false;
+
+                    for (let i = 0; i < cards.length; i++){
+                        if (cards[i].classList.contains('hovered')){
+                            alreadyHovered = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyHovered){
+                        if (selectIndex > 0){
+                            ;
+                        }
+                        else{
+                            ;
+                        }
+                        console.log(cardOrder, selectIndex);
+                    }
+                    else{
+                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                    }
+                }
+            }
         }
 
         function hover(event){
             if (!event.target.classList.contains('grabbed')){
                 for (let i = 0; i < cards.length; i++){
                     cards[i].classList.remove ('hovered'); 
+                    if (cards[i] == event.target){
+                        selectIndex = cardOrder.indexOf(i);
+                    }
                 }
                 event.target.classList.add('hovered');
+                console.log(selectIndex);
             }
         }
         function unhover(event){
