@@ -22,12 +22,11 @@
             background-color: rgb(150, 221, 221);
             overflow: hidden;
         }
-        .card{
+        .card, .play{
             background: url('./assets/spritesheets/cards.png') no-repeat;
             width: calc(25vmin / 2.5);
             height: calc(35vmin / 2.5);
             background-size: auto 100%;
-            animation: draw 0.5s;
             transition: transform 0.3s, left 0.3s, top 0.3s;
             user-select: none;
             position: absolute;
@@ -54,6 +53,7 @@
 
     <script>
         cards = document.getElementsByClassName('card');
+        plays = document.getElementsByClassName('play');
         selectedCard = null;
         selectIndex = 0;
 
@@ -67,24 +67,42 @@
         drawnCards = [];
         cardOrder = [];
 
+        const MAXCARDS = 5;
+
         gap = 5 * Math.min(window.innerWidth, window.innerHeight) / 100;
 
         document.addEventListener('mousemove', move);
         document.addEventListener('mouseup', drop);
         window.addEventListener('resize', resize);
 
+        for (let i = 0; i < 2; i++){
+            const play = document.createElement('div');
+            play.className = "play";
+            play.style.left = `calc(50% - (25vmin / 2.5) - 5vmin / 2 + ((25vmin / 2.5) + 5vmin) * ${i})`;
+            play.style.top = `calc(50% - (35vmin / 2.5) / 2)`;
+            play.style.transition = 'none';
+
+            do{
+                random = Math.floor(Math.random() * 52);
+            } while (drawnCards.includes(CARDNAMES[random]));
+            drawnCards.push(CARDNAMES[random]);
+            play.value = CARDNAMES[random].slice(0, -1);
+            play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${random}) 0`;
+
+            document.body.appendChild(play);
+        }
+
         document.addEventListener('keydown', keyPress);
         function keyPress(event){
             if (event.repeat){
                 return;
             }
-            if (event.key == ' ' && cards.length < 5){
-
-                for (let i = 0; i < cards.length; i++){
-                    if (cards[i].classList.contains('grabbed')){
-                        return;
-                    }
+            for (let i = 0; i < cards.length; i++){
+                if (cards[i].classList.contains('grabbed')){
+                    return;
                 }
+            }
+            if (event.key == ' ' && cards.length < MAXCARDS){
 
                 const card = document.createElement('div');
                 card.className = "card";
@@ -103,6 +121,7 @@
 
                 card.value = CARDNAMES[random].slice(0, -1);
                 card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${random}) 0`;
+                card.style.animation = 'draw 0.5s';
                 card.addEventListener('mousemove', hover);
                 card.addEventListener('mouseleave', unhover);
                 card.addEventListener('mousedown', grab);
@@ -138,7 +157,7 @@
                             cards[i].classList.remove ('hovered'); 
                         }
                         if (selectIndex > 0){
-                            cards[cardOrder.indexOf(selectIndex-1)].classList.add('hovered');
+                            cards[cardOrder[selectIndex-1]].classList.add('hovered');
                             selectIndex = selectIndex-1;
                         }
                         else{
@@ -147,7 +166,7 @@
                         }
                     }
                     else{
-                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                        cards[cardOrder[selectIndex]].classList.add('hovered');
                     }
                 }
             }
@@ -167,7 +186,7 @@
                             cards[i].classList.remove ('hovered'); 
                         }
                         if (selectIndex < cards.length - 1){
-                            cards[cardOrder.indexOf(selectIndex+1)].classList.add('hovered');
+                            cards[cardOrder[selectIndex+1]].classList.add('hovered');
                             selectIndex = selectIndex+1;
                         }
                         else{
@@ -176,7 +195,7 @@
                         }
                     }
                     else{
-                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                        cards[cardOrder[selectIndex]].classList.add('hovered');
                     }
                 }
             }
@@ -193,15 +212,60 @@
 
                     if (alreadyHovered){
                         if (selectIndex > 0){
-                            ;
+                            [originalLeft[cardOrder[selectIndex]], originalLeft[cardOrder[selectIndex-1]]] = [originalLeft[cardOrder[selectIndex-1]], originalLeft[cardOrder[selectIndex]]];
+                            [cardOrder[selectIndex], cardOrder[selectIndex-1]] = [cardOrder[selectIndex-1], cardOrder[selectIndex]];
+                            cards[cardOrder[selectIndex]].style.left = `${originalLeft[cardOrder[selectIndex]]}px`;
+                            cards[cardOrder[selectIndex-1]].style.left = `${originalLeft[cardOrder[selectIndex-1]]}px`;
+                            selectIndex = selectIndex-1;
                         }
                         else{
-                            ;
+                            for (let i = 0; i < cardOrder.length - 1; i++){
+                                [originalLeft[cardOrder[i]], originalLeft[cardOrder[i+1]]] = [originalLeft[cardOrder[i+1]], originalLeft[cardOrder[i]]];
+                                cards[cardOrder[i]].style.left = `${originalLeft[cardOrder[i]]}px`;
+                                cards[cardOrder[i+1]].style.left = `${originalLeft[cardOrder[i+1]]}px`;
+                                [cardOrder[i], cardOrder[i+1]] = [cardOrder[i+1], cardOrder[i]];
+                            }
+                            selectIndex = cardOrder.length - 1;
                         }
                         console.log(cardOrder, selectIndex);
                     }
                     else{
-                        cards[cardOrder.indexOf(selectIndex)].classList.add('hovered');
+                        cards[cardOrder[selectIndex]].classList.add('hovered');
+                    }
+                }
+            }
+            if (event.key == 'e'){
+                if (cards.length >= 1){
+                    alreadyHovered = false;
+
+                    for (let i = 0; i < cards.length; i++){
+                        if (cards[i].classList.contains('hovered')){
+                            alreadyHovered = true;
+                            break;
+                        }
+                    }
+
+                    if (alreadyHovered){
+                        if (selectIndex < cards.length - 1){
+                            [originalLeft[cardOrder[selectIndex]], originalLeft[cardOrder[selectIndex+1]]] = [originalLeft[cardOrder[selectIndex+1]], originalLeft[cardOrder[selectIndex]]];
+                            [cardOrder[selectIndex], cardOrder[selectIndex+1]] = [cardOrder[selectIndex+1], cardOrder[selectIndex]];
+                            cards[cardOrder[selectIndex]].style.left = `${originalLeft[cardOrder[selectIndex]]}px`;
+                            cards[cardOrder[selectIndex+1]].style.left = `${originalLeft[cardOrder[selectIndex+1]]}px`;
+                            selectIndex = selectIndex+1;
+                        }
+                        else{
+                            for (let i = cardOrder.length - 1; i > 0; i--){
+                                [originalLeft[cardOrder[i]], originalLeft[cardOrder[i-1]]] = [originalLeft[cardOrder[i-1]], originalLeft[cardOrder[i]]];
+                                cards[cardOrder[i]].style.left = `${originalLeft[cardOrder[i]]}px`;
+                                cards[cardOrder[i-1]].style.left = `${originalLeft[cardOrder[i-1]]}px`;
+                                [cardOrder[i], cardOrder[i-1]] = [cardOrder[i-1], cardOrder[i]];
+                            }
+                            selectIndex = 0;
+                        }
+                        console.log(cardOrder, selectIndex);
+                    }
+                    else{
+                        cards[cardOrder[selectIndex]].classList.add('hovered');
                     }
                 }
             }
