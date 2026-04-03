@@ -103,6 +103,13 @@
                 }
             }
             if (event.key == ' ' && cards.length < MAXCARDS){
+                if (cards.length == 0){
+                    selectIndex = 0;
+                }
+
+                if (drawnCards.length == 52){
+                    return;
+                }
 
                 const card = document.createElement('div');
                 card.className = "card";
@@ -269,6 +276,48 @@
                     }
                 }
             }
+            if (event.key == 'ArrowLeft' || event.key == 'ArrowRight'){
+                if (cards.length >= 1){
+                    let hovered = -1;
+                    for (let i = 0; i < cards.length; i++){
+                        if (cards[cardOrder[i]].classList.contains('hovered')){
+                            hovered = i;
+                            break;
+                        }
+                    }
+
+                    if (hovered !== -1){
+                        const removed = cardOrder[hovered];
+
+                        // remove the card from DOM and order arrays
+                        cards[removed].remove();
+                        cardOrder.splice(hovered, 1);
+                        originalLeft.splice(removed, 1);
+
+                        // Shift DOM indices in cardOrder due to removed card
+                        for (let i = 0; i < cardOrder.length; i++){
+                            if (cardOrder[i] > removed){
+                                cardOrder[i] -= 1;
+                            }
+                        }
+
+                        // Recalculate positions so cards slide into place
+                        const cardWidth = 25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5;
+                        for (let i = 0; i < cards.length; i++){
+                            const cardIndex = cardOrder[i];
+                            const newLeft = 0.5 * window.innerWidth - cardWidth / 2 + (i - (cards.length - 1) / 2) * (cardWidth + gap);
+                            originalLeft[cardIndex] = newLeft;
+                            cards[cardIndex].style.left = `${newLeft}px`;
+                            cards[cardIndex].style.top = originalTop;
+                        }
+
+                        selectIndex = Math.min(hovered, cardOrder.length - 1);
+                        if (selectIndex >= 0){
+                            cards[cardOrder[selectIndex]].classList.add('hovered');
+                        }
+                    }
+                }
+            }
         }
 
         function hover(event){
@@ -384,8 +433,8 @@
             gap = 5 * Math.min(window.innerWidth, window.innerHeight) / 100;
             const cardWidth = 25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5;
 
-            for (let visualIndex = 0; visualIndex < cards.length; visualIndex++){
-                const cardIndex = cardOrder[visualIndex]; // actual DOM index
+            for (let i = 0; i < cards.length; i++){
+                const cardIndex = cardOrder[i]; // actual DOM index
                 const card = cards[cardIndex];
 
                 card.style.transition = 'none';
@@ -393,7 +442,7 @@
                 originalLeft[cardIndex] =
                     0.5 * window.innerWidth
                     - cardWidth / 2
-                    + (visualIndex - (cards.length - 1) / 2) * (cardWidth + gap);
+                    + (i - (cards.length - 1) / 2) * (cardWidth + gap);
 
                 card.style.left = `${originalLeft[cardIndex]}px`;
                 card.style.top = originalTop;
