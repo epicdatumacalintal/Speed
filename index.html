@@ -22,7 +22,7 @@
             background-color: rgb(150, 221, 221);
             overflow: hidden;
         }
-        .card, .play{
+        .card, .play, .retryCard{
             background: url('./assets/spritesheets/cards.png') no-repeat;
             width: calc(25vmin / 2.5);
             height: calc(35vmin / 2.5);
@@ -54,6 +54,7 @@
     <script>
         cards = document.getElementsByClassName('card');
         plays = document.getElementsByClassName('play');
+        retryCards = document.getElementsByClassName('retryCard');
         selectedCard = null;
         selectIndex = 0;
 
@@ -65,15 +66,77 @@
                         "1c","2c","3c","4c","5c","6c","7c","8c","9c","10c","11c","12c","13c",
                         "1s","2s","3s","4s","5s","6s","7s","8s","9s","10s","11s","12s","13s"];
         drawnCards = [];
+        userDeck = [];
+        opponentDeck = [];
+        userRetryDeck = [];
+        opponentRetryDeck = [];
+        userPlayed = [];
+        opponentPlayed = [];
         cardOrder = [];
 
         const MAXCARDS = 5;
 
         gap = 5 * Math.min(window.innerWidth, window.innerHeight) / 100;
 
+        hoveringPlay = false;
+
         document.addEventListener('mousemove', move);
         document.addEventListener('mouseup', drop);
         window.addEventListener('resize', resize);
+        
+        for (let i = 0; i < 20; i++){
+            do{
+                random = Math.floor(Math.random() * 52);
+            } while (drawnCards.includes(CARDNAMES[random]));
+            userDeck.push(CARDNAMES[random]);
+            drawnCards.push(CARDNAMES[random]);
+        }
+
+        for (let i = 0; i < 20; i++){
+            do{
+                random = Math.floor(Math.random() * 52);
+            } while (drawnCards.includes(CARDNAMES[random]));
+            opponentDeck.push(CARDNAMES[random]);
+            drawnCards.push(CARDNAMES[random]);
+        }
+
+        for (let i = 0; i < 5; i++){
+            do{
+                random = Math.floor(Math.random() * 52);
+            } while (drawnCards.includes(CARDNAMES[random]));
+            userRetryDeck.push(CARDNAMES[random]);
+            drawnCards.push(CARDNAMES[random]);
+        }
+
+        for (let i = 0; i < 5; i++){
+            do{
+                random = Math.floor(Math.random() * 52);
+            } while (drawnCards.includes(CARDNAMES[random]));
+            opponentRetryDeck.push(CARDNAMES[random]);
+            drawnCards.push(CARDNAMES[random]);
+        }
+
+        do{
+            random = Math.floor(Math.random() * 52);
+        } while (drawnCards.includes(CARDNAMES[random]));
+        userPlayed.push(CARDNAMES[random]);
+        drawnCards.push(CARDNAMES[random]);
+
+        do{
+            random = Math.floor(Math.random() * 52);
+        } while (drawnCards.includes(CARDNAMES[random]));
+        opponentPlayed.push(CARDNAMES[random]);
+        drawnCards.push(CARDNAMES[random]);
+
+        for (let i = 0; i < 2; i++){
+            const retryCard = document.createElement('div');
+            retryCard.className = "retryCard";
+            retryCard.style.left = `calc(50% - ((25vmin / 2.5) * 2 + (5vmin / 2) * 3) + ((25vmin / 2.5) * 3 + 5vmin * 3) * ${i})`;
+            retryCard.style.top = `calc(50% - (35vmin / 2.5) / 2)`;
+            retryCard.style.transition = 'none';
+            retryCard.style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+            document.body.appendChild(retryCard);
+        } 
 
         for (let i = 0; i < 2; i++){
             const play = document.createElement('div');
@@ -82,12 +145,14 @@
             play.style.top = `calc(50% - (35vmin / 2.5) / 2)`;
             play.style.transition = 'none';
 
-            do{
-                random = Math.floor(Math.random() * 52);
-            } while (drawnCards.includes(CARDNAMES[random]));
-            drawnCards.push(CARDNAMES[random]);
-            play.value = CARDNAMES[random].slice(0, -1);
-            play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${random}) 0`;
+            if (i == 0){
+                play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userPlayed[0])}) 0`;
+                play.value = userPlayed[0];
+            }
+            else{
+                play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentPlayed[0])}) 0`;
+                play.value = opponentPlayed[0];
+            }
 
             document.body.appendChild(play);
         }
@@ -107,7 +172,7 @@
                     selectIndex = 0;
                 }
 
-                if (drawnCards.length == 52){
+                if (userDeck.length == 0){
                     return;
                 }
 
@@ -121,13 +186,10 @@
                 card.style.left = `${originalLeft[originalLeft.length - 1]}px`;
                 card.style.top = originalTop;
 
-                do{
-                    random = Math.floor(Math.random() * 52);
-                } while (drawnCards.includes(CARDNAMES[random]));
-                drawnCards.push(CARDNAMES[random]);
+                card.value = userDeck[userDeck.length - 1];
+                card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userDeck[userDeck.length - 1])}) 0`;
+                userDeck.splice(userDeck.length - 1, 1);
 
-                card.value = CARDNAMES[random].slice(0, -1);
-                card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${random}) 0`;
                 card.style.animation = 'draw 0.5s';
                 card.addEventListener('mousemove', hover);
                 card.addEventListener('mouseleave', unhover);
@@ -282,12 +344,21 @@
                     for (let i = 0; i < cards.length; i++){
                         if (cards[cardOrder[i]].classList.contains('hovered')){
                             hovered = i;
+                            console.log(hovered);
                             break;
                         }
                     }
 
                     if (hovered !== -1){
                         const removed = cardOrder[hovered];
+
+                        place(cards[removed].style.backgroundPosition, parseInt(cards[removed].style.left), cards[removed].style.top, event.key, cards[removed].value);
+                        if (event.key == 'ArrowLeft'){
+                            opponentPlayed.push(cards[removed].value);
+                        }
+                        else if (event.key == 'ArrowRight'){
+                            userPlayed.push(cards[removed].value);
+                        }
 
                         // remove the card from DOM and order arrays
                         cards[removed].remove();
@@ -317,6 +388,18 @@
                         }
                     }
                 }
+            }
+            if (event.key == 'Shift'){
+                if (opponentRetryDeck.length == 0 || userRetryDeck.length == 0){
+                    return;
+                }
+
+                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentRetryDeck[opponentRetryDeck.length - 1])}) 0`, retryCards[0].offsetLeft, retryCards[0].offsetTop, 'ArrowLeft', opponentRetryDeck[opponentRetryDeck.length - 1]);
+                opponentPlayed.push(opponentRetryDeck[opponentRetryDeck.length - 1]);
+                opponentRetryDeck.splice(opponentRetryDeck.length - 1, 1);
+                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userRetryDeck[userRetryDeck.length - 1])}) 0`, retryCards[1].offsetLeft, retryCards[1].offsetTop, 'ArrowRight', userRetryDeck[userRetryDeck.length - 1]);
+                userPlayed.push(userRetryDeck[userRetryDeck.length - 1]);
+                userRetryDeck.splice(userRetryDeck.length - 1, 1);
             }
         }
 
@@ -351,8 +434,23 @@
         }
         function move(event){
             if (selectedCard != null){
-                cards[selectedCard].style.left = event.clientX - cards[selectedCard].offsetWidth/2 + 'px';
-                cards[selectedCard].style.top = event.clientY - cards[selectedCard].offsetHeight/2 + 'px';
+                for (let i = 0; i < 2; i++){
+                    if (event.clientX > plays[i].offsetLeft && event.clientX < plays[i].offsetLeft + plays[i].offsetWidth && event.clientY > plays[i].offsetTop && event.clientY < plays[i].offsetTop + plays[i].offsetHeight){
+                        cards[selectedCard].style.transition = 'left 0.1s, top 0.1s';
+                        cards[selectedCard].style.left = `${plays[i].offsetLeft}px`;
+                        cards[selectedCard].style.top = plays[i].style.top;
+                        hoveringPlay = true;
+                        break;
+                    }
+                    else{
+                        hoveringPlay = false;
+                    }
+                }
+                if (!hoveringPlay){
+                    cards[selectedCard].style.transition = "";
+                    cards[selectedCard].style.left = event.clientX - cards[selectedCard].offsetWidth/2 + 'px';
+                    cards[selectedCard].style.top = event.clientY - cards[selectedCard].offsetHeight/2 + 'px';
+                }
 
                 if (cards.length > 1){
                     for (let i = 0; i < cards.length; i++){
@@ -415,6 +513,38 @@
         }
         function drop(event){
             if (selectedCard != null){
+                if (hoveringPlay){
+                    if (event.clientX > plays[0].offsetLeft && event.clientX < plays[0].offsetLeft + plays[0].offsetWidth && event.clientY > plays[0].offsetTop && event.clientY < plays[0].offsetTop + plays[0].offsetHeight){
+                        place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowLeft', cards[selectedCard].value);
+                        opponentPlayed.push(cards[selectedCard].value);
+                    }
+                    else if (event.clientX > plays[1].offsetLeft && event.clientX < plays[1].offsetLeft + plays[1].offsetWidth && event.clientY > plays[1].offsetTop && event.clientY < plays[1].offsetTop + plays[1].offsetHeight){
+                        place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowRight', cards[selectedCard].value);
+                        userPlayed.push(cards[selectedCard].value);
+                    }
+                    const removed = cardOrder[cardOrder.indexOf(selectedCard)];
+                    // remove the card from DOM and order arrays
+                    cards[removed].remove();
+                    cardOrder.splice(cardOrder.indexOf(selectedCard), 1);
+                    originalLeft.splice(removed, 1);
+                    // Shift DOM indices in cardOrder due to removed card
+                    for (let i = 0; i < cardOrder.length; i++){
+                        if (cardOrder[i] > removed){
+                            cardOrder[i] -= 1;
+                        }
+                    }
+
+                    // Assign Original left values
+                    for (let i = 0; i < cards.length; i++){
+                        newOriginalLeft = cards[i].style.left;
+                        originalLeft[i] = parseInt(newOriginalLeft.slice(0, newOriginalLeft.length - 2));
+                    }
+
+                    selectIndex = Math.min(cardOrder.indexOf(selectedCard), cardOrder.length - 1);
+                    hoveringPlay = false;
+                    selectedCard = null;
+                    return;
+                }
                 cards[selectedCard].classList.remove('grabbed');
                 cards[selectedCard].style.zIndex = 999;
                 cards[selectedCard].addEventListener('transitionend', function(){
@@ -426,6 +556,8 @@
                     cards[i].style.top = originalTop;
 
                 }
+                
+                hoveringPlay = false;
                 selectedCard = null;
             }
         }
@@ -454,6 +586,34 @@
             // Restore transitions
             for (let i = 0; i < cards.length; i++){
                 cards[i].style.transition = "";
+            }
+        }
+        function place(backgroundPosition, left, top, key, value){
+            const play = document.createElement('div');
+            play.className = "play";
+            play.style.left = `${left}px`;
+            play.style.top = top;
+            play.style.backgroundPosition = backgroundPosition;
+            document.body.appendChild(play);
+            if (key == 'ArrowLeft'){
+                plays[0].value = value;
+                play.offsetHeight;
+                play.style.left = plays[0].style.left;
+                play.style.top = plays[0].style.top;
+                play.addEventListener('transitionend', function(){
+                    plays[0].style.backgroundPosition = backgroundPosition;
+                    play.remove();
+                }, {once: true});
+            }
+            else if (key == 'ArrowRight'){
+                plays[1].value = value;
+                play.offsetHeight;
+                play.style.left = plays[1].style.left;
+                play.style.top = plays[1].style.top;
+                play.addEventListener('transitionend', function(){
+                    plays[1].style.backgroundPosition = backgroundPosition;
+                    play.remove();
+                }, {once: true});
             }
         }
     </script>
