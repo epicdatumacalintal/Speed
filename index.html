@@ -146,15 +146,21 @@
             play.style.transition = 'none';
 
             if (i == 0){
-                play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userPlayed[0])}) 0`;
-                play.value = userPlayed[0];
-            }
-            else{
                 play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentPlayed[0])}) 0`;
                 play.value = opponentPlayed[0];
             }
+            else{
+                play.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userPlayed[0])}) 0`;
+                play.value = userPlayed[0];
+            }
 
             document.body.appendChild(play);
+        }
+
+        for (let i = 0; i < 5; i++){
+            setTimeout(() => {
+                draw();
+            }, 500*i);
         }
 
         document.addEventListener('keydown', keyPress);
@@ -167,36 +173,8 @@
                     return;
                 }
             }
-            if (event.key == ' ' && cards.length < MAXCARDS){
-                if (cards.length == 0){
-                    selectIndex = 0;
-                }
-
-                if (userDeck.length == 0){
-                    return;
-                }
-
-                const card = document.createElement('div');
-                card.className = "card";
-                for (let i = 0; i < cards.length; i++){
-                    originalLeft[i] = originalLeft[i] - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2 + gap/2);
-                    cards[i].style.left = `${originalLeft[i]}px`;
-                }
-                originalLeft.push(0.5*window.innerWidth - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2) + ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2 + gap/2) * cards.length);
-                card.style.left = `${originalLeft[originalLeft.length - 1]}px`;
-                card.style.top = originalTop;
-
-                card.value = userDeck[userDeck.length - 1];
-                card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userDeck[userDeck.length - 1])}) 0`;
-                userDeck.splice(userDeck.length - 1, 1);
-
-                card.style.animation = 'draw 0.5s';
-                card.addEventListener('mousemove', hover);
-                card.addEventListener('mouseleave', unhover);
-                card.addEventListener('mousedown', grab);
-                document.body.appendChild(card);
-                cardOrder.push(cards.length-1);
-                console.log(cardOrder);
+            if (event.key == ' '){
+                draw();
             }
             if (parseInt(event.key) >= 1 && parseInt(event.key) <= cards.length && cards.length >= 1){
                 selectIndex = parseInt(event.key)-1;
@@ -390,19 +368,79 @@
                 }
             }
             if (event.key == 'Shift'){
-                if (opponentRetryDeck.length == 0 || userRetryDeck.length == 0){
-                    return;
+                if (opponentRetryDeck.length == 0 && userRetryDeck.length == 0){
+                    plays[0].style.background = "none";
+                    plays[1].style.background = "none";
+                    opponentPlayedCount = opponentPlayed.length;
+                    userPlayedCount = userPlayed.length;
+                    for (let i = 0; i < opponentPlayedCount; i++){
+                        opponentRetryDeck.push(opponentPlayed[opponentPlayed.length - 1]);
+                        opponentPlayed.splice(opponentPlayed.length - 1, 1);
+                    }
+                    for (let i = 0; i < userPlayedCount; i++){
+                        userRetryDeck.push(userPlayed[userPlayed.length - 1]);
+                        userPlayed.splice(userPlayed.length - 1, 1);
+                    }
                 }
 
-                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentRetryDeck[opponentRetryDeck.length - 1])}) 0`, retryCards[0].offsetLeft, retryCards[0].offsetTop, 'ArrowLeft', opponentRetryDeck[opponentRetryDeck.length - 1]);
-                opponentPlayed.push(opponentRetryDeck[opponentRetryDeck.length - 1]);
-                opponentRetryDeck.splice(opponentRetryDeck.length - 1, 1);
-                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userRetryDeck[userRetryDeck.length - 1])}) 0`, retryCards[1].offsetLeft, retryCards[1].offsetTop, 'ArrowRight', userRetryDeck[userRetryDeck.length - 1]);
-                userPlayed.push(userRetryDeck[userRetryDeck.length - 1]);
-                userRetryDeck.splice(userRetryDeck.length - 1, 1);
+                if (opponentRetryDeck.length > 0){
+                    place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentRetryDeck[opponentRetryDeck.length - 1])}) 0`, retryCards[0].offsetLeft, retryCards[0].offsetTop, 'ArrowLeft', opponentRetryDeck[opponentRetryDeck.length - 1]);
+                    opponentPlayed.push(opponentRetryDeck[opponentRetryDeck.length - 1]);
+                    opponentRetryDeck.splice(opponentRetryDeck.length - 1, 1);
+                }
+                if (userRetryDeck.length > 0){
+                    place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userRetryDeck[userRetryDeck.length - 1])}) 0`, retryCards[1].offsetLeft, retryCards[1].offsetTop, 'ArrowRight', userRetryDeck[userRetryDeck.length - 1]);
+                    userPlayed.push(userRetryDeck[userRetryDeck.length - 1]);
+                    userRetryDeck.splice(userRetryDeck.length - 1, 1);
+                }
+                if (opponentRetryDeck.length == 0){
+                    retryCards[0].style.background = "none";
+                }
+                else{
+                    retryCards[0].style.background = "";
+                    retryCards[0].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+                }
+                if (userRetryDeck.length == 0){
+                    retryCards[1].style.background = "none";
+                }
+                else{
+                    retryCards[1].style.background = "";
+                    retryCards[1].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+                }
             }
         }
 
+        function draw(){
+            if (cards.length == 0){
+                selectIndex = 0;
+            }
+
+            if (userDeck.length == 0 || cards.length == MAXCARDS){
+                return;
+            }
+
+            const card = document.createElement('div');
+            card.className = "card";
+            for (let i = 0; i < cards.length; i++){
+                originalLeft[i] = originalLeft[i] - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2 + gap/2);
+                cards[i].style.left = `${originalLeft[i]}px`;
+            }
+            originalLeft.push(0.5*window.innerWidth - ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2) + ((25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5) / 2 + gap/2) * cards.length);
+            card.style.left = `${originalLeft[originalLeft.length - 1]}px`;
+            card.style.top = originalTop;
+
+            card.value = userDeck[userDeck.length - 1];
+            card.style.backgroundPosition = `calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userDeck[userDeck.length - 1])}) 0`;
+            userDeck.splice(userDeck.length - 1, 1);
+
+            card.style.animation = 'draw 0.5s';
+            card.addEventListener('mousemove', hover);
+            card.addEventListener('mouseleave', unhover);
+            card.addEventListener('mousedown', grab);
+            document.body.appendChild(card);
+            cardOrder.push(cards.length-1);
+            console.log(cardOrder);
+        }
         function hover(event){
             if (!event.target.classList.contains('grabbed')){
                 for (let i = 0; i < cards.length; i++){
@@ -601,6 +639,7 @@
                 play.style.left = plays[0].style.left;
                 play.style.top = plays[0].style.top;
                 play.addEventListener('transitionend', function(){
+                    plays[0].style.background = "";
                     plays[0].style.backgroundPosition = backgroundPosition;
                     play.remove();
                 }, {once: true});
@@ -611,6 +650,7 @@
                 play.style.left = plays[1].style.left;
                 play.style.top = plays[1].style.top;
                 play.addEventListener('transitionend', function(){
+                    plays[1].style.background = "";
                     plays[1].style.backgroundPosition = backgroundPosition;
                     play.remove();
                 }, {once: true});
