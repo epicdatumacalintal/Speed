@@ -328,41 +328,48 @@
                     }
 
                     if (hovered !== -1){
+                        placeCorrectly = false;
                         const removed = cardOrder[hovered];
 
-                        place(cards[removed].style.backgroundPosition, parseInt(cards[removed].style.left), cards[removed].style.top, event.key, cards[removed].value);
-                        if (event.key == 'ArrowLeft'){
+                        if (event.key == 'ArrowLeft' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1){
+                            placeCorrectly = true;
                             opponentPlayed.push(cards[removed].value);
                         }
-                        else if (event.key == 'ArrowRight'){
+                        else if (event.key == 'ArrowRight' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1){
+                            placeCorrectly = true;
                             userPlayed.push(cards[removed].value);
                         }
+                        
+                        if (placeCorrectly){
+                            place(cards[removed].style.backgroundPosition, parseInt(cards[removed].style.left), cards[removed].style.top, event.key, cards[removed].value);
+                            
 
-                        // remove the card from DOM and order arrays
-                        cards[removed].remove();
-                        cardOrder.splice(hovered, 1);
-                        originalLeft.splice(removed, 1);
+                            // remove the card from DOM and order arrays
+                            cards[removed].remove();
+                            cardOrder.splice(hovered, 1);
+                            originalLeft.splice(removed, 1);
 
-                        // Shift DOM indices in cardOrder due to removed card
-                        for (let i = 0; i < cardOrder.length; i++){
-                            if (cardOrder[i] > removed){
-                                cardOrder[i] -= 1;
+                            // Shift DOM indices in cardOrder due to removed card
+                            for (let i = 0; i < cardOrder.length; i++){
+                                if (cardOrder[i] > removed){
+                                    cardOrder[i] -= 1;
+                                }
                             }
-                        }
 
-                        // Recalculate positions so cards slide into place
-                        const cardWidth = 25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5;
-                        for (let i = 0; i < cards.length; i++){
-                            const cardIndex = cardOrder[i];
-                            const newLeft = 0.5 * window.innerWidth - cardWidth / 2 + (i - (cards.length - 1) / 2) * (cardWidth + gap);
-                            originalLeft[cardIndex] = newLeft;
-                            cards[cardIndex].style.left = `${newLeft}px`;
-                            cards[cardIndex].style.top = originalTop;
-                        }
+                            // Recalculate positions so cards slide into place
+                            const cardWidth = 25 * Math.min(window.innerWidth, window.innerHeight) / 100 / 2.5;
+                            for (let i = 0; i < cards.length; i++){
+                                const cardIndex = cardOrder[i];
+                                const newLeft = 0.5 * window.innerWidth - cardWidth / 2 + (i - (cards.length - 1) / 2) * (cardWidth + gap);
+                                originalLeft[cardIndex] = newLeft;
+                                cards[cardIndex].style.left = `${newLeft}px`;
+                                cards[cardIndex].style.top = originalTop;
+                            }
 
-                        selectIndex = Math.min(hovered, cardOrder.length - 1);
-                        if (selectIndex >= 0){
-                            cards[cardOrder[selectIndex]].classList.add('hovered');
+                            selectIndex = Math.min(hovered, cardOrder.length - 1);
+                            if (selectIndex >= 0){
+                                cards[cardOrder[selectIndex]].classList.add('hovered');
+                            }
                         }
                     }
                 }
@@ -373,13 +380,15 @@
                     plays[1].style.background = "none";
                     opponentPlayedCount = opponentPlayed.length;
                     userPlayedCount = userPlayed.length;
-                    for (let i = 0; i < opponentPlayedCount; i++){
-                        opponentRetryDeck.push(opponentPlayed[opponentPlayed.length - 1]);
-                        opponentPlayed.splice(opponentPlayed.length - 1, 1);
+                    for (let i = opponentPlayed.length; i > 0; i--){
+                        random = Math.floor(Math.random() * i)
+                        opponentRetryDeck.push(opponentPlayed[random]);
+                        opponentPlayed.splice(random, 1);
                     }
-                    for (let i = 0; i < userPlayedCount; i++){
-                        userRetryDeck.push(userPlayed[userPlayed.length - 1]);
-                        userPlayed.splice(userPlayed.length - 1, 1);
+                    for (let i = userPlayed.length; i > 0; i--){
+                        random = Math.floor(Math.random() * i)
+                        userRetryDeck.push(userPlayed[random]);
+                        userPlayed.splice(random, 1);
                     }
                 }
 
@@ -552,39 +561,46 @@
         function drop(event){
             if (selectedCard != null){
                 if (hoveringPlay){
-                    if (event.clientX > plays[0].offsetLeft && event.clientX < plays[0].offsetLeft + plays[0].offsetWidth && event.clientY > plays[0].offsetTop && event.clientY < plays[0].offsetTop + plays[0].offsetHeight){
+                    placeCorrectly = false;
+                    if (event.clientX > plays[0].offsetLeft && event.clientX < plays[0].offsetLeft + plays[0].offsetWidth && event.clientY > plays[0].offsetTop && event.clientY < plays[0].offsetTop + plays[0].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1){
+                        placeCorrectly = true;
                         place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowLeft', cards[selectedCard].value);
                         opponentPlayed.push(cards[selectedCard].value);
                     }
-                    else if (event.clientX > plays[1].offsetLeft && event.clientX < plays[1].offsetLeft + plays[1].offsetWidth && event.clientY > plays[1].offsetTop && event.clientY < plays[1].offsetTop + plays[1].offsetHeight){
+                    else if (event.clientX > plays[1].offsetLeft && event.clientX < plays[1].offsetLeft + plays[1].offsetWidth && event.clientY > plays[1].offsetTop && event.clientY < plays[1].offsetTop + plays[1].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1){
+                        placeCorrectly = true;
                         place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowRight', cards[selectedCard].value);
                         userPlayed.push(cards[selectedCard].value);
                     }
-                    const removed = cardOrder[cardOrder.indexOf(selectedCard)];
-                    // remove the card from DOM and order arrays
-                    cards[removed].remove();
-                    cardOrder.splice(cardOrder.indexOf(selectedCard), 1);
-                    originalLeft.splice(removed, 1);
-                    // Shift DOM indices in cardOrder due to removed card
-                    for (let i = 0; i < cardOrder.length; i++){
-                        if (cardOrder[i] > removed){
-                            cardOrder[i] -= 1;
+
+                    if (placeCorrectly){
+                        const removed = cardOrder[cardOrder.indexOf(selectedCard)];
+                        // remove the card from DOM and order arrays
+                        cards[removed].remove();
+                        cardOrder.splice(cardOrder.indexOf(selectedCard), 1);
+                        originalLeft.splice(removed, 1);
+                        // Shift DOM indices in cardOrder due to removed card
+                        for (let i = 0; i < cardOrder.length; i++){
+                            if (cardOrder[i] > removed){
+                                cardOrder[i] -= 1;
+                            }
                         }
-                    }
 
-                    // Assign Original left values
-                    for (let i = 0; i < cards.length; i++){
-                        newOriginalLeft = cards[i].style.left;
-                        originalLeft[i] = parseInt(newOriginalLeft.slice(0, newOriginalLeft.length - 2));
-                    }
+                        // Assign Original left values
+                        for (let i = 0; i < cards.length; i++){
+                            newOriginalLeft = cards[i].style.left;
+                            originalLeft[i] = parseInt(newOriginalLeft.slice(0, newOriginalLeft.length - 2));
+                        }
 
-                    selectIndex = Math.min(cardOrder.indexOf(selectedCard), cardOrder.length - 1);
-                    hoveringPlay = false;
-                    selectedCard = null;
-                    return;
+                        selectIndex = Math.min(cardOrder.indexOf(selectedCard), cardOrder.length - 1);
+                        hoveringPlay = false;
+                        selectedCard = null;
+                        return;
+                    }
                 }
                 cards[selectedCard].classList.remove('grabbed');
                 cards[selectedCard].style.zIndex = 999;
+                cards[selectedCard].style.transition = '';
                 cards[selectedCard].addEventListener('transitionend', function(){
                     event.target.style.zIndex = '';
                 }, {once: true});
