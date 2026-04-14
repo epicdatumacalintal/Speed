@@ -138,6 +138,8 @@
             document.body.appendChild(retryCard);
         } 
 
+        retryCards[1].addEventListener('mousedown', retry);
+
         for (let i = 0; i < 2; i++){
             const play = document.createElement('div');
             play.className = "play";
@@ -375,47 +377,7 @@
                 }
             }
             if (event.key == 'Shift'){
-                if (opponentRetryDeck.length == 0 && userRetryDeck.length == 0){
-                    plays[0].style.background = "none";
-                    plays[1].style.background = "none";
-                    opponentPlayedCount = opponentPlayed.length;
-                    userPlayedCount = userPlayed.length;
-                    for (let i = opponentPlayed.length; i > 0; i--){
-                        random = Math.floor(Math.random() * i)
-                        opponentRetryDeck.push(opponentPlayed[random]);
-                        opponentPlayed.splice(random, 1);
-                    }
-                    for (let i = userPlayed.length; i > 0; i--){
-                        random = Math.floor(Math.random() * i)
-                        userRetryDeck.push(userPlayed[random]);
-                        userPlayed.splice(random, 1);
-                    }
-                }
-
-                if (opponentRetryDeck.length > 0){
-                    place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentRetryDeck[opponentRetryDeck.length - 1])}) 0`, retryCards[0].offsetLeft, retryCards[0].offsetTop, 'ArrowLeft', opponentRetryDeck[opponentRetryDeck.length - 1]);
-                    opponentPlayed.push(opponentRetryDeck[opponentRetryDeck.length - 1]);
-                    opponentRetryDeck.splice(opponentRetryDeck.length - 1, 1);
-                }
-                if (userRetryDeck.length > 0){
-                    place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userRetryDeck[userRetryDeck.length - 1])}) 0`, retryCards[1].offsetLeft, retryCards[1].offsetTop, 'ArrowRight', userRetryDeck[userRetryDeck.length - 1]);
-                    userPlayed.push(userRetryDeck[userRetryDeck.length - 1]);
-                    userRetryDeck.splice(userRetryDeck.length - 1, 1);
-                }
-                if (opponentRetryDeck.length == 0){
-                    retryCards[0].style.background = "none";
-                }
-                else{
-                    retryCards[0].style.background = "";
-                    retryCards[0].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
-                }
-                if (userRetryDeck.length == 0){
-                    retryCards[1].style.background = "none";
-                }
-                else{
-                    retryCards[1].style.background = "";
-                    retryCards[1].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
-                }
+                retry();
             }
         }
 
@@ -670,6 +632,49 @@
                     plays[1].style.backgroundPosition = backgroundPosition;
                     play.remove();
                 }, {once: true});
+            }
+        }
+        function retry(){
+            if (opponentRetryDeck.length == 0 && userRetryDeck.length == 0){
+                plays[0].style.background = "none";
+                plays[1].style.background = "none";
+                opponentPlayedCount = opponentPlayed.length;
+                userPlayedCount = userPlayed.length;
+                for (let i = opponentPlayed.length; i > 0; i--){
+                    random = Math.floor(Math.random() * i)
+                    opponentRetryDeck.push(opponentPlayed[random]);
+                    opponentPlayed.splice(random, 1);
+                }
+                for (let i = userPlayed.length; i > 0; i--){
+                    random = Math.floor(Math.random() * i)
+                    userRetryDeck.push(userPlayed[random]);
+                    userPlayed.splice(random, 1);
+                }
+            }
+
+            if (opponentRetryDeck.length > 0){
+                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(opponentRetryDeck[opponentRetryDeck.length - 1])}) 0`, retryCards[0].offsetLeft, retryCards[0].offsetTop, 'ArrowLeft', opponentRetryDeck[opponentRetryDeck.length - 1]);
+                opponentPlayed.push(opponentRetryDeck[opponentRetryDeck.length - 1]);
+                opponentRetryDeck.splice(opponentRetryDeck.length - 1, 1);
+            }
+            if (userRetryDeck.length > 0){
+                place(`calc((-25vmin / 2.5) * ${CARDNAMES.indexOf(userRetryDeck[userRetryDeck.length - 1])}) 0`, retryCards[1].offsetLeft, retryCards[1].offsetTop, 'ArrowRight', userRetryDeck[userRetryDeck.length - 1]);
+                userPlayed.push(userRetryDeck[userRetryDeck.length - 1]);
+                userRetryDeck.splice(userRetryDeck.length - 1, 1);
+            }
+            if (opponentRetryDeck.length == 0){
+                retryCards[0].style.background = "calc((-25vmin / 2.5) * 53) 0";
+            }
+            else{
+                retryCards[0].style.background = "";
+                retryCards[0].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+            }
+            if (userRetryDeck.length == 0){
+                retryCards[1].style.background = "calc((-25vmin / 2.5) * 53) 0";
+            }
+            else{
+                retryCards[1].style.background = "";
+                retryCards[1].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
             }
         }
     </script>
