@@ -22,7 +22,7 @@
             background-color: rgb(150, 221, 221);
             overflow: hidden;
         }
-        .card, .play, .retryCard{
+        .card, .play, .retryCard, .draw{
             background: url('./assets/spritesheets/cards.png') no-repeat;
             width: calc(25vmin / 2.5);
             height: calc(35vmin / 2.5);
@@ -55,6 +55,7 @@
         cards = document.getElementsByClassName('card');
         plays = document.getElementsByClassName('play');
         retryCards = document.getElementsByClassName('retryCard');
+        draws = document.getElementsByClassName('draw')
         selectedCard = null;
         selectIndex = 0;
 
@@ -158,6 +159,15 @@
 
             document.body.appendChild(play);
         }
+
+        const userDraw = document.createElement('div');
+        userDraw.className = "draw";
+        userDraw.style.left = `calc(50% - (25vmin / 2.5) / 2 + ((25vmin / 2.5) + 5vmin) * 3)`;
+        userDraw.style.top = originalTop;
+        userDraw.style.transition = 'none';
+        userDraw.style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+        userDraw.addEventListener('mousedown', draw);
+        document.body.appendChild(userDraw);
 
         for (let i = 0; i < 5; i++){
             setTimeout(() => {
@@ -333,11 +343,11 @@
                         placeCorrectly = false;
                         const removed = cardOrder[hovered];
 
-                        if (event.key == 'ArrowLeft' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1){
+                        if (event.key == 'ArrowLeft' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1 || Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 12){
                             placeCorrectly = true;
                             opponentPlayed.push(cards[removed].value);
                         }
-                        else if (event.key == 'ArrowRight' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1){
+                        else if (event.key == 'ArrowRight' && Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1 || Math.abs(parseInt(cards[removed].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 12){
                             placeCorrectly = true;
                             userPlayed.push(cards[removed].value);
                         }
@@ -409,6 +419,11 @@
             card.addEventListener('mouseleave', unhover);
             card.addEventListener('mousedown', grab);
             document.body.appendChild(card);
+
+            if (userDeck.length == 0){
+                draws[0].style.background = "none";
+            }
+
             cardOrder.push(cards.length-1);
             console.log(cardOrder);
         }
@@ -524,12 +539,12 @@
             if (selectedCard != null){
                 if (hoveringPlay){
                     placeCorrectly = false;
-                    if (event.clientX > plays[0].offsetLeft && event.clientX < plays[0].offsetLeft + plays[0].offsetWidth && event.clientY > plays[0].offsetTop && event.clientY < plays[0].offsetTop + plays[0].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1){
+                    if (event.clientX > plays[0].offsetLeft && event.clientX < plays[0].offsetLeft + plays[0].offsetWidth && event.clientY > plays[0].offsetTop && event.clientY < plays[0].offsetTop + plays[0].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 1 || Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[0].value.slice(0, -1))) == 12){
                         placeCorrectly = true;
                         place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowLeft', cards[selectedCard].value);
                         opponentPlayed.push(cards[selectedCard].value);
                     }
-                    else if (event.clientX > plays[1].offsetLeft && event.clientX < plays[1].offsetLeft + plays[1].offsetWidth && event.clientY > plays[1].offsetTop && event.clientY < plays[1].offsetTop + plays[1].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1){
+                    else if (event.clientX > plays[1].offsetLeft && event.clientX < plays[1].offsetLeft + plays[1].offsetWidth && event.clientY > plays[1].offsetTop && event.clientY < plays[1].offsetTop + plays[1].offsetHeight && Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 1 || Math.abs(parseInt(cards[selectedCard].value.slice(0, -1)) - parseInt(plays[1].value.slice(0, -1))) == 12){
                         placeCorrectly = true;
                         place(cards[selectedCard].style.backgroundPosition, parseInt(cards[selectedCard].style.left), cards[selectedCard].style.top, 'ArrowRight', cards[selectedCard].value);
                         userPlayed.push(cards[selectedCard].value);
@@ -663,14 +678,14 @@
                 userRetryDeck.splice(userRetryDeck.length - 1, 1);
             }
             if (opponentRetryDeck.length == 0){
-                retryCards[0].style.background = "calc((-25vmin / 2.5) * 53) 0";
+                retryCards[0].style.backgroundPosition = "calc((-25vmin / 2.5) * 53) 0";
             }
             else{
                 retryCards[0].style.background = "";
                 retryCards[0].style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
             }
             if (userRetryDeck.length == 0){
-                retryCards[1].style.background = "calc((-25vmin / 2.5) * 53) 0";
+                retryCards[1].style.backgroundPosition = "calc((-25vmin / 2.5) * 53) 0";
             }
             else{
                 retryCards[1].style.background = "";
