@@ -160,6 +160,14 @@
             document.body.appendChild(play);
         }
 
+        const opponentDraw = document.createElement('div');
+        opponentDraw.className = "draw";
+        opponentDraw.style.left = `calc(50% - (25vmin / 2.5) / 2 - ((25vmin / 2.5) + 5vmin) * 3)`;
+        opponentDraw.style.top = `5vmin`;
+        opponentDraw.style.transition = 'none';
+        opponentDraw.style.backgroundPosition = `calc((-25vmin / 2.5) * 52) 0`;
+        document.body.appendChild(opponentDraw);
+
         const userDraw = document.createElement('div');
         userDraw.className = "draw";
         userDraw.style.left = `calc(50% - (25vmin / 2.5) / 2 + ((25vmin / 2.5) + 5vmin) * 3)`;
@@ -421,7 +429,7 @@
             document.body.appendChild(card);
 
             if (userDeck.length == 0){
-                draws[0].style.background = "none";
+                draws[1].style.background = "none";
             }
 
             cardOrder.push(cards.length-1);
